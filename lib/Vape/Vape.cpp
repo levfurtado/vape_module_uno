@@ -124,7 +124,7 @@ float OhmMeter::ohmTranslate(int* ohmVoltageResults) {
 PhysicalInput::PhysicalInput(int pioPin) {
   _pioPin = pioPin;
   pinMode(_pioPin, INPUT);
-  // digitalWrite(_pioPin, HIGH); //turn pullup resistor on
+  digitalWrite(_pioPin, HIGH); //turn pullup resistor on
 }
 
 int PhysicalInput::readInput() {
