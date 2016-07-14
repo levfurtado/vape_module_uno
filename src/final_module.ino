@@ -27,15 +27,44 @@ bool not_init = true;
 void setup() {
   Serial.begin(9600);
   pinMode(6, OUTPUT);
+  PhysicalInput pio(_pioPin);
+  DigitalPot digiPot(_csPin);
+  FiveFiveFive five(_fivePin);
+  Executor execute(pioPin, csPin, fivePin, adsAddress, probe, KpRaw, KiRaw, KdRaw);
 }
 
 void loop() {
-  Executor execute(pioPin, csPin, fivePin, adsAddress, probe, KpRaw, KiRaw, KdRaw);
+
   if(not_init) {
     Serial.println("not init");
     Translator translate(ohmEnable);
     pidSetpoint = translate.takeInput( operatingMode, setpoint);
     not_init = false;
   }
-  execute.waitForInput(pidSetpoint);
+
+  if(pio.readInput()) {
+    double InputRaw = 0;
+    double OutputRaw = 0;
+    double SetpointRaw = 0;
+    PID myPIDRaw(&InputRaw, &OutputRaw, &SetpointRaw, _KpRaw, _KiRaw, _KdRaw, DIRECT);
+    myPIDRaw.SetMode(AUTOMATIC);
+    myPIDRaw.SetOutputLimits(0, 255);
+    myPIDRaw.SetSampleTime(1);
+    VoltageMeter vMeter(_adsAddress);
+    // Used in order for raspberry pi monitoring device to get "up to speed"
+    delay(500);
+    while(pio.readInput()) {
+      five.fiveEnable();
+      InputRaw = vMeter.voltage(_probe);
+      SetpointRaw = pidSetpoint;
+      myPIDRaw.Compute();
+      int intOutput = OutputRaw;
+      digiPot.writeToPot(intOutput);
+      digitalWrite(6, 1);
+    }
+  }
+  digitalWrite(6, 0);
+  five.fiveKill();
+  digiPot.killPot();
+
 }

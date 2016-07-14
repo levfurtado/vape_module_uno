@@ -32,53 +32,6 @@ double Translator::setWattage(float wattage) {
   return wattageSetpoint;
 }
 
-Executor::Executor(int pioPin, int csPin, int fivePin, uint8_t adsAddress, int probe, double KpRaw, double KiRaw, double KdRaw) {
-  _pioPin = pioPin;
-  _csPin = csPin;
-  _fivePin = fivePin;
-  _adsAddress = adsAddress;
-  _probe = probe;
-  _KpRaw = KpRaw;
-  _KiRaw = KiRaw;
-  _KdRaw = KdRaw;
-}
-
-void Executor::waitForInput(double pidSetpoint) {
-  digitalWrite(6, 0);
-
-
-  PhysicalInput pio(_pioPin);
-  DigitalPot digiPot(_csPin);
-  FiveFiveFive five(_fivePin);
-  if(pio.readInput()) {
-    double InputRaw = 0;
-    double OutputRaw = 0;
-    double SetpointRaw = 0;
-    PID myPIDRaw(&InputRaw, &OutputRaw, &SetpointRaw, _KpRaw, _KiRaw, _KdRaw, DIRECT);
-    myPIDRaw.SetMode(AUTOMATIC);
-    myPIDRaw.SetOutputLimits(0, 255);
-    myPIDRaw.SetSampleTime(1);
-    VoltageMeter vMeter(_adsAddress);
-    // Used in order for raspberry pi monitoring device to get "up to speed"
-    delay(500);
-    while(pio.readInput()) {
-      five.fiveEnable();
-      InputRaw = vMeter.voltage(_probe);
-      SetpointRaw = pidSetpoint;
-      myPIDRaw.Compute();
-      int intOutput = OutputRaw;
-      digiPot.writeToPot(intOutput);
-      digitalWrite(6, 1);
-    }
-    digitalWrite(6, 0);
-    five.fiveKill();
-    digiPot.killPot();
-  }
-  five.fiveKill();
-  digiPot.killPot();
-
-}
-
 VoltageMeter::VoltageMeter(uint8_t adsAddress) {
   _adsAddress = adsAddress;
   Adafruit_ADS1015 ads(_adsAddress);     //adc

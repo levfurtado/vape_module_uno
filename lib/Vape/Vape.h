@@ -57,19 +57,5 @@ class FiveFiveFive {
     int _fivePin;
 };
 
-class Executor {
-  public:
-      Executor(int pioPin, int csPin, int fivePin, uint8_t adsAddress, int probe, double KpRaw, double KiRaw, double KdRaw);
-      void waitForInput(double pidSetpoint);
-    private:
-      int _pioPin;
-      int _csPin;
-      int _fivePin;
-      uint8_t _adsAddress;
-      int _probe;
-      double _KpRaw;
-      double _KiRaw;
-      double _KdRaw;
-};
 
 #endif
