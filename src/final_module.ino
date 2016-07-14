@@ -50,17 +50,18 @@ void loop() {
     not_init = false;
   }
 
-  if(pio.readInput()) {
+  if(digitalRead(pioPin) == 1) {
     // Used in order for raspberry pi monitoring device to get "up to speed"
     delay(500);
-    while(pio.readInput()) {
-      five.fiveEnable();
+    five.fiveEnable();
+    while(digitalRead(pioPin) == 1) {
+      digitalWrite(6, 1);
+      // digitalWrite(6, 0);
       InputRaw = vMeter.voltage(probe);
       SetpointRaw = pidSetpoint;
       myPIDRaw.Compute();
       int intOutput = OutputRaw;
       digiPot.writeToPot(intOutput);
-      digitalWrite(6, 1);
     }
   }
   digitalWrite(6, 0);
